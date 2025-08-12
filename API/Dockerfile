@@ -1,6 +1,9 @@
+FROM gradle:jdk17 AS build
+WORKDIR /app
+COPY --chown=gradle:gradle . .
+RUN gradle clean build --no-daemon
+
 FROM openjdk:17-jdk-slim
-ENV APP_HOME=/home/app
-ARG JAR_FILE=build/libs/*.jar
-COPY ${JAR_FILE} ${APP_HOME}/app.jar
-WORKDIR $APP_HOME
-ENTRYPOINT ["java","-jar","/app.jar"]
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
