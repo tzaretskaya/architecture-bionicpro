@@ -11,8 +11,13 @@ services:
       - ./postgres-keycloak-data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
+    networks:
+      - net1
   keycloak:
     image: quay.io/keycloak/keycloak:21.1
+    container_name: keycloak
+    networks:
+      - net1
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -20,6 +25,7 @@ services:
       KC_DB_URL: jdbc:postgresql://keycloak_db:5432/keycloak_db
       KC_DB_USERNAME: keycloak_user
       KC_DB_PASSWORD: keycloak_password
+#      KC_HOSTNAME: http://localhost:8080
     command: 
       - start-dev
       - --import-realm
@@ -36,7 +42,21 @@ services:
     ports:
       - "3000:3000"
     environment:
-      REACT_APP_API_URL: http://localhost:8000
-      REACT_APP_KEYCLOAK_URL: http://localhost:8080
+      REACT_APP_API_URL: http://keycloak:8080
+      REACT_APP_KEYCLOAK_URL: http://keycloak:8080
       REACT_APP_KEYCLOAK_REALM: reports-realm
       REACT_APP_KEYCLOAK_CLIENT_ID: reports-frontend
+    networks:
+      - net1
+  backend:
+    build:
+      context: ./API
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8080"
+      - "5005:5005"
+    networks:
+      - net1
+networks:
+  net1: {}
+
